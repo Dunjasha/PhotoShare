@@ -1,4 +1,4 @@
-import cloudinary
+
 import cloudinary
 import cloudinary.uploader
 from fastapi import UploadFile, HTTPException, status
