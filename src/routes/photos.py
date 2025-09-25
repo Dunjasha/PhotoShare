@@ -41,3 +41,14 @@ async def delete_photo(photo_id: int, db: AsyncSession = Depends(get_db), user: 
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
     return photo
+
+
+@router.post("/transform", response_model=PhotoResponse, status_code=status.HTTP_200_OK)
+async def transform_photo(
+    photo_id: int,
+    transformation: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(auth_service.get_current_user),
+):
+ 
+    return await repository_photos.transform_photo(photo_id, transformation, db, user)

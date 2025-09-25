@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     MAIL_PORT: int = c("MAIL_PORT")
     MAIL_SERVER: str = c("MAIL_SERVER")
 
+    CLOUDINARY_CLOUD_NAME: str = c("CLOUDINARY_CLOUD_NAME")
+    CLOUDINARY_API_KEY: str = c("CLOUDINARY_API_KEY")
+    CLOUDINARY_API_SECRET: str = c("CLOUDINARY_API_SECRET")
 
     @property
     def DB_URL(self) -> str:
