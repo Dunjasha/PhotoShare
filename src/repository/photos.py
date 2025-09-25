@@ -16,7 +16,7 @@ async def get_photos(db: AsyncSession, user: User):
     photos = await db.execute(stmt)
     return photos.scalars().all()
 
-async def get_photo(photo_id: int, db: AsyncSession):
+async def get_photo(photo_id: int, db: AsyncSession, user: User):
     stmt = select(Photo).filter_by(id=photo_id)
     todo = await db.execute(stmt)
     return todo.scalar_one_or_none()
