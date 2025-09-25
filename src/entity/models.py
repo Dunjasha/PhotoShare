@@ -37,6 +37,9 @@ class Post(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="posts")
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
+    url: Mapped[str] = mapped_column(String(255))
+    public_id: Mapped[str] = mapped_column(String(255), unique=True)
+    transformed_url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
 
 class Comment(Base):
