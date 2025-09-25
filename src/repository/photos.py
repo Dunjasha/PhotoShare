@@ -3,7 +3,7 @@ import cloudinary.uploader
 from src.conf.config import config
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 
 from src.entity.models import Photo, User
 from src.schemas.photo import PhotoSchema, PhotoUpdateSchema
@@ -52,3 +52,21 @@ async def delete_photo(photo_id: int, db: AsyncSession, user: User):
         await db.delete(photo)
         await db.commit()
     return photo
+
+async def transform_photo(photo_id: int, transformation: str, db: AsyncSession, user):
+    stmt = select(Photo).filter_by(id=photo_id, owner_id=user.id)
+    result = await db.execute(stmt)
+    photo = result.scalar_one_or_none()
+
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    try:
+        transformed_url = await cloudinary_service.transform_image(photo.public_id, transformation)
+        photo.transformed_url = transformed_url
+        await db.commit()
+        await db.refresh(photo)
+
+        return photo
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
