@@ -1,4 +1,5 @@
 import cloudinary
+import cloudinary
 import cloudinary.uploader
 from fastapi import UploadFile, HTTPException, status
 from src.conf.config import config
@@ -9,7 +10,7 @@ class CloudinaryService:
             cloud_name=config.CLOUDINARY_CLOUD_NAME,
             api_key=config.CLOUDINARY_API_KEY,
             api_secret=config.CLOUDINARY_API_SECRET,
-            secure=True
+            secure=True,
         )
         self.max_file_size = 5 * 1024 * 1024  # 5 МБ
 
