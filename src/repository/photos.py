@@ -1,6 +1,3 @@
-import cloudinary
-import cloudinary.uploader
-from src.conf.config import config
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, UploadFile
