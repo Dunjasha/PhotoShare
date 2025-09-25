@@ -1,14 +1,32 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Security
 from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from src.schemas.user import UserSchema, TokenSchema, UserResponse
 from src.repository import users as repositories_users
 from src.database.db import get_db
 from src.services.auth import auth_service
 
+from src.entity.models import Role, User
+from dependencies import require_role
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 get_refresh_token = HTTPBearer()
 
+
+@router.patch("/users/{user_id}/role")
+def update_role(
+    user_id: int,
+    new_role: Role,
+    db: Session = Depends(get_db),
+    current_admin = Depends(require_role(Role.admin))
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"error": "User not found"}
+    user.role = new_role
+    db.commit()
+    return {"msg": f"Role user {user.email} change to {new_role}"}
 
 @router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def signup(body: UserSchema, db: AsyncSession = Depends(get_db)):

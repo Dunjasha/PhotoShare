@@ -1,5 +1,8 @@
 from pathlib import Path
 
+from dependencies import require_role
+from src.entity.models import Role
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -66,3 +69,7 @@ async def healthchecker(db: AsyncSession = Depends(get_db)):
         return {"message": "Welcome to FastAPI!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail="DB connection error")
+
+@app.get("/admin-panel")
+def admin_only(current_user=Depends(require_role(Role.admin))):
+    return {"msg": f"Welcome, admin {current_user.email}!"}

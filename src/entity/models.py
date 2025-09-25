@@ -2,11 +2,19 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date
 from sqlalchemy import String, DateTime, ForeignKey, func, Boolean
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy import Enum
 from typing import Optional
 
 
 class Base(DeclarativeBase):
     pass
+
+
+class Role(str, Enum):
+    USER = "user"
+    MODERATOR = "moderator"
+    ADMIN = "admin"
 
 
 class User(Base):
@@ -16,6 +24,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(50), unique=True)
     email: Mapped[str] = mapped_column(String(150), unique=True)
     password: Mapped[str] = mapped_column(String(255))
+    role: Mapped[Role] = mapped_column(SAEnum(Role), default=Role.USER, nullable=False)
+    
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     refresh_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[date] = mapped_column(DateTime, default=func.now())
