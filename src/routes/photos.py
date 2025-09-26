@@ -5,7 +5,7 @@ from src.database.db import get_db
 from src.repository import photos as repository_photos
 from src.entity.models import User
 
-from src.schemas.photo import PhotoSchema, PhotoUpdateSchema
+from src.schemas.post import PhotoSchema, PhotoUpdateSchema
 from src.schemas import PhotoSchema, PhotoUpdateSchema, PhotoResponse
 from src.services.auth import auth_service
 
