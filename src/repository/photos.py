@@ -1,6 +1,3 @@
-import cloudinary
-import cloudinary.uploader
-from src.conf.config import config
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, UploadFile
@@ -22,7 +19,7 @@ async def get_photos(db: AsyncSession, user: User):
     photos = await db.execute(stmt)
     return photos.scalars().all()
 
-async def get_photo(photo_id: int, db: AsyncSession):
+async def get_photo(photo_id: int, db: AsyncSession, user: User):
     stmt = select(Photo).filter_by(id=photo_id)
     todo = await db.execute(stmt)
     return todo.scalar_one_or_none()
