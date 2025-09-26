@@ -40,6 +40,7 @@ class Post(Base):
     url: Mapped[str] = mapped_column(String(255))
     public_id: Mapped[str] = mapped_column(String(255), unique=True)
     transformed_url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    qr_code_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
 
 class Comment(Base):

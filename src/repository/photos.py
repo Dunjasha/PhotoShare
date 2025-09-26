@@ -8,8 +8,14 @@ from fastapi import HTTPException, UploadFile
 from src.entity.models import Photo, User
 from src.schemas.photo import PhotoSchema, PhotoUpdateSchema
 from src.services.cloudinary_service import CloudinaryService
+import qrcode
+import os
+from pathlib import Path
 
 cloudinary_service = CloudinaryService()
+
+QR_CODES_DIR = Path("qrcodes")
+QR_CODES_DIR.mkdir(exist_ok=True)
 
 async def get_photos(db: AsyncSession, user: User):
     stmt = select(Photo)
@@ -70,3 +76,26 @@ async def transform_photo(photo_id: int, transformation: str, db: AsyncSession, 
         return photo
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+async def generate_qr_code(photo_id: int, db: AsyncSession, user: User):
+    stmt = select(Photo).filter_by(id=photo_id, owner_id=user.id)
+    result = await db.execute(stmt)
+    photo = result.scalar_one_or_none()
+
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    if not photo.transformed_url:
+        raise HTTPException(status_code=400, detail="No transformed image found")
+
+    img = qrcode.make(photo.transformed_url)
+
+    qr_path = QR_CODES_DIR / f"photo_{photo.id}_qr.png"
+    img.save(qr_path)
+
+    photo.qr_code_path = str(qr_path)
+    await db.commit()
+    await db.refresh(photo)
+
+    return photo
