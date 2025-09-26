@@ -50,5 +50,18 @@ async def transform_photo(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(auth_service.get_current_user),
 ):
- 
+
     return await repository_photos.transform_photo(photo_id, transformation, db, user)
+
+
+@router.post(
+    "/{photo_id}/generate_qr",
+    response_model=PhotoResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def generate_qr_code(
+    photo_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(auth_service.get_current_user),
+):
+    return await repository_photos.generate_qr_code(photo_id, db, user)
