@@ -26,5 +26,6 @@ class PhotoResponse(BaseModel):
     public_id: str
     created_at: datetime
     updated_at: datetime
+    qr_code_path: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
