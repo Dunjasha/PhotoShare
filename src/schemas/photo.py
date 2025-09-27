@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
@@ -10,7 +10,7 @@ class TagSchema(BaseModel):
 
 class PhotoSchema(BaseModel):
     description: Optional[str] = None
-    tags: list[str] = []
+    tags: Optional[List[str]] = None
     transformed_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
