@@ -10,7 +10,6 @@ from src.schemas.photo import PhotoSchema, PhotoUpdateSchema, PhotoResponse
 from src.services.cloudinary_service import CloudinaryService
 import qrcode
 from sqlalchemy import func
-import os
 from pathlib import Path
 
 cloudinary_service = CloudinaryService()
@@ -42,7 +41,7 @@ async def create_photo(file: UploadFile, description: Optional[str], tags: Optio
             if not tag:
                 tag = Tag(name=tag_name)
                 db.add(tag)
-                await db.flush()  # получить id
+                await db.flush()
             tag_objects.append(tag)
 
     new_photo = Post(

@@ -36,7 +36,7 @@ class Post(Base):
     __tablename__ = "posts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    description: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(String(255), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[date] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[date] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
@@ -48,9 +48,7 @@ class Post(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="posts")
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
-    tags: Mapped[list["Tag"]] = relationship(
-        "Tag", secondary=photo_tags, back_populates="photos", lazy="selectin"
-    )
+    tags: Mapped[list["Tag"]] = relationship("Tag", secondary=photo_tags, back_populates="photos", lazy="selectin")
 
 class Tag(Base):
     __tablename__ = "tags"
