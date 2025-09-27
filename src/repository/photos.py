@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, UploadFile
 
 from src.entity.models import Photo, User
-from src.schemas.post import PhotoSchema, PhotoUpdateSchema
+from src.schemas.photo import PhotoSchema, PhotoUpdateSchema
 from src.services.cloudinary_service import CloudinaryService
 
 cloudinary_service = CloudinaryService()
