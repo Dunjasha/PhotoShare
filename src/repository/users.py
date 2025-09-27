@@ -43,18 +43,18 @@ async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)
     return user
 
 
-async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)):
+async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     """
-    Get public information about a user by username.
+    Retrieve a user from the database by email.
 
     Args:
-        username (str): User's username.
-        db (AsyncSession): DB session.
+        email (str): The email of the user to search for.
+        db (AsyncSession): The database session (injected).
 
     Returns:
-        UserResponse: Public user data.
+        User | None: The user object if found, otherwise None.
     """
-    stmt = select(User).where(User.email == username)
+    stmt = select(User).where(User.email == email)
     user = await db.execute(stmt)
     user = user.scalar_one_or_none()
     return user
