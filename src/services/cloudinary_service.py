@@ -1,6 +1,8 @@
-import cloudinary.uploader
-from src.conf.config import config
 
+import cloudinary
+import cloudinary.uploader
+from fastapi import UploadFile, HTTPException, status
+from src.conf.config import config
 
 class CloudinaryService:
     def __init__(self):
@@ -10,6 +12,28 @@ class CloudinaryService:
             api_secret=config.CLOUDINARY_API_SECRET,
             secure=True,
         )
+        self.max_file_size = 5 * 1024 * 1024  # 5 МБ
+
+    async def upload_image(self, file: UploadFile, folder: str = "photoshare") -> tuple[str, str]:
+        contents = await file.read()
+        if len(contents) > self.max_file_size:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Max file size {self.max_file_size // (1024*1024)} МБ"
+            )
+        await file.seek(0)
+
+        result = cloudinary.uploader.upload(
+            file.file,
+            folder=folder,
+            resource_type="image"
+        )
+        url = result["secure_url"]
+        public_id = result["public_id"]
+        return url, public_id
+
+    async def delete_image(self, public_id: str):
+        cloudinary.uploader.destroy(public_id, resource_type="image")
 
     async def transform_image(self, public_id: str, transformation: str) -> str:
         transformations = {

@@ -35,3 +35,4 @@ class PhotoResponse(BaseModel):
     qr_code_path: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
