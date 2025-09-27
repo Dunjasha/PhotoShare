@@ -15,8 +15,11 @@ from pathlib import Path
 
 cloudinary_service = CloudinaryService()
 
+<<<<<<< HEAD
 QR_CODES_DIR = Path("qrcodes")
 QR_CODES_DIR.mkdir(exist_ok=True)
+=======
+>>>>>>> c7dbed2cd58bf3fa66b3b0fe1c84c137fe57837c
 
 async def get_photos(db: AsyncSession, user: User):
     stmt = select(Post).options(selectinload(Post.tags))
@@ -24,8 +27,14 @@ async def get_photos(db: AsyncSession, user: User):
     result = photos.scalars().all()
     return [PhotoResponse.model_validate(photo) for photo in result]
 
+<<<<<<< HEAD
 async def get_photo(photo_id: int, db: AsyncSession, user: User):
     stmt = select(Post).filter_by(id=photo_id).options(selectinload(Post.tags))
+=======
+
+async def get_photo(photo_id: int, db: AsyncSession):
+    stmt = select(Photo).filter_by(id=photo_id)
+>>>>>>> c7dbed2cd58bf3fa66b3b0fe1c84c137fe57837c
     todo = await db.execute(stmt)
     photo = todo.scalar_one_or_none()
     return PhotoResponse.model_validate(photo) if photo else None
@@ -160,6 +169,7 @@ async def transform_photo(photo_id: int, transformation: str, db: AsyncSession, 
         transformed_url = await cloudinary_service.transform_image(photo.public_id, transformation)
         photo.transformed_url = transformed_url
         await db.commit()
+<<<<<<< HEAD
         await db.refresh(photo)
         return PhotoResponse.model_validate(photo)
     except ValueError as e:
@@ -186,3 +196,6 @@ async def generate_qr_code(photo_id: int, db: AsyncSession, user: User):
     await db.refresh(photo)
 
     return PhotoResponse.model_validate(photo)
+=======
+    return photo
+>>>>>>> c7dbed2cd58bf3fa66b3b0fe1c84c137fe57837c

@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.auth import auth_service
 from src.schemas.user import UserResponse
 from src.entity.models import User
+<<<<<<< HEAD
+=======
+from src.repository import users as repositories_users
+>>>>>>> c7dbed2cd58bf3fa66b3b0fe1c84c137fe57837c
 from src.database.db import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])
