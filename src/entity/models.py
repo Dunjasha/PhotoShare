@@ -8,12 +8,14 @@ from typing import Optional
 class Base(DeclarativeBase):
     pass
 
+
 photo_tags = Table(
     "photo_tags",
     Base.metadata,
     Column("photo_id", Integer, ForeignKey("posts.id"), primary_key=True),
     Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True),
 )
+
 
 class User(Base):
     __tablename__ = "users"
@@ -52,6 +54,7 @@ class Post(Base):
         "Tag", secondary=photo_tags, back_populates="photos", lazy="selectin"
     )
 
+
 class Tag(Base):
     __tablename__ = "tags"
 
@@ -59,6 +62,7 @@ class Tag(Base):
     name: Mapped[str] = mapped_column(String(50), unique=True)
 
     photos: Mapped[list["Post"]] = relationship("Post", secondary=photo_tags, back_populates="tags", lazy="selectin")
+
 
 class Comment(Base):
     __tablename__ = "comments"
