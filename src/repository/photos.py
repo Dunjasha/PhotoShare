@@ -11,10 +11,12 @@ from src.services.cloudinary_service import CloudinaryService
 
 cloudinary_service = CloudinaryService()
 
+
 async def get_photos(db: AsyncSession, user: User):
     stmt = select(Photo)
     photos = await db.execute(stmt)
     return photos.scalars().all()
+
 
 async def get_photo(photo_id: int, db: AsyncSession):
     stmt = select(Photo).filter_by(id=photo_id)
