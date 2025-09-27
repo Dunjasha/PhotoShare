@@ -43,6 +43,23 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     return user
 
 
+async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)):
+    """
+    Get public information about a user by username.
+
+    Args:
+        username (str): User's username.
+        db (AsyncSession): DB session.
+
+    Returns:
+        UserResponse: Public user data.
+    """
+    stmt = select(User).where(User.email == username)
+    user = await db.execute(stmt)
+    user = user.scalar_one_or_none()
+    return user
+
+
 async def confirmed_email(email: str, db: AsyncSession) -> None:
     """
     Mark a user's email as confirmed.
