@@ -1,10 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date
-<<<<<<< HEAD
-from sqlalchemy import String, DateTime, ForeignKey, func, Boolean, Enum, Table, Column
-=======
 from sqlalchemy import String, DateTime, ForeignKey, func, Boolean, Table, Integer, Column
->>>>>>> 96acfed9550dee0449601a7836ec37e218b3e330
 from sqlalchemy.orm import DeclarativeBase
 from typing import Optional
 
@@ -49,20 +45,7 @@ class Post(Base):
     __tablename__ = "posts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-<<<<<<< HEAD
-    description: Mapped[str] = mapped_column(String(255), nullable=False)
-    url: Mapped[str] = mapped_column(String(255), nullable=False)
-    public_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    transformed_url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    created_at: Mapped[DateTime] = mapped_column(DateTime, default=func.now())
-    updated_at: Mapped[DateTime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
-
-    user: Mapped["User"] = relationship("User", back_populates="posts")
-    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
-    tags: Mapped[list["Tag"]] = relationship("Tag", secondary=post_tag_table, back_populates="posts")
-=======
-    description: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(String(255), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[date] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[date] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
@@ -73,11 +56,13 @@ class Post(Base):
     qr_code_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="posts")
-    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
+    comments: Mapped[list["Comment"]] = relationship(
+        "Comment", back_populates="post", cascade="all, delete-orphan"
+    )
     tags: Mapped[list["Tag"]] = relationship(
         "Tag", secondary=photo_tags, back_populates="photos", lazy="selectin"
     )
->>>>>>> 96acfed9550dee0449601a7836ec37e218b3e330
+
 
 class Tag(Base):
     __tablename__ = "tags"
