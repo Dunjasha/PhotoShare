@@ -15,6 +15,14 @@ photo_tags = Table(
     Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True),
 )
 
+post_tag_table = Table(
+    "post_tags",
+    Base.metadata,
+    Column("post_id", ForeignKey("posts.id"), primary_key=True),
+    Column("tag_id", ForeignKey("tags.id"), primary_key=True),
+)
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -24,6 +32,7 @@ class User(Base):
     password: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     refresh_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
     created_at: Mapped[date] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[date] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
     confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
@@ -47,8 +56,13 @@ class Post(Base):
     qr_code_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="posts")
-    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
-    tags: Mapped[list["Tag"]] = relationship("Tag", secondary=photo_tags, back_populates="photos", lazy="selectin")
+    comments: Mapped[list["Comment"]] = relationship(
+        "Comment", back_populates="post", cascade="all, delete-orphan"
+    )
+    tags: Mapped[list["Tag"]] = relationship(
+        "Tag", secondary=photo_tags, back_populates="photos", lazy="selectin"
+    )
+
 
 class Tag(Base):
     __tablename__ = "tags"
@@ -62,11 +76,20 @@ class Comment(Base):
     __tablename__ = "comments"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    comment_content: Mapped[str] = mapped_column(String(255))
+    content: Mapped[str] = mapped_column(String(255), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     post_id: Mapped[int] = mapped_column(ForeignKey("posts.id"))
-    created_at: Mapped[date] = mapped_column(DateTime, default=func.now())
-    updated_at: Mapped[date] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+    created_at: Mapped[DateTime] = mapped_column(DateTime, default=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
 
     user: Mapped["User"] = relationship("User", back_populates="comments")
     post: Mapped["Post"] = relationship("Post", back_populates="comments")
+
+
+class Tag(Base):
+    __tablename__ = "tags"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+
+    posts: Mapped[list["Post"]] = relationship("Post", secondary=post_tag_table, back_populates="tags")

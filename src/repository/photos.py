@@ -32,9 +32,20 @@ async def get_photo(photo_id: int, db: AsyncSession, user: User):
 
 async def create_photo(file: UploadFile, description: Optional[str], tags: Optional[list[str]], db: AsyncSession, user: User):
     url, public_id = await cloudinary_service.upload_image(file)
-
     tag_objects = []
     if tags:
+        raw = ",".join(tags)
+        parts = [t.strip() for t in raw.split(",") if t.strip()]
+        seen = set()
+        normalized_tags = []
+        for t in parts:
+            key = t.casefold()
+            if key not in seen:
+                seen.add(key)
+                normalized_tags.append(t)
+
+        if len(normalized_tags) > 5:
+            raise HTTPException(status_code=400, detail="You can add a maximum of 5 tags")
         for tag_name in tags:
             result = await db.execute(select(Tag).filter_by(name=tag_name))
             tag = result.scalar_one_or_none()
@@ -81,7 +92,6 @@ async def update_photo_description(photo_id: int, body: PhotoUpdateSchema, db: A
     if body.tags is not None:
         raw = ",".join(body.tags)
         parts = [t.strip() for t in raw.split(",") if t.strip()]
-
         seen = set()
         normalized_tags = []
         for t in parts:
@@ -89,6 +99,9 @@ async def update_photo_description(photo_id: int, body: PhotoUpdateSchema, db: A
             if key not in seen:
                 seen.add(key)
                 normalized_tags.append(t)
+
+        if len(normalized_tags) > 5:
+            raise HTTPException(status_code=400, detail="You can add a maximum of 5 tags")
 
         tag_objects: list[Tag] = []
         for tag_name in normalized_tags:

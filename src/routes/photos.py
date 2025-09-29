@@ -66,4 +66,8 @@ async def generate_qr_code(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(auth_service.get_current_user),
 ):
+<<<<<<< HEAD
     return await repository_photos.generate_qr_code(photo_id, db, user)
+=======
+    return await repository_photos.generate_qr_code(photo_id, db, user)
+>>>>>>> 96acfed9550dee0449601a7836ec37e218b3e330
