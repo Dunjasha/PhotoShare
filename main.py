@@ -7,7 +7,8 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.db import get_db
-from src.routes import auth, users, photos, coment
+from src.routes import auth, users, photos, comment
+
 
 app = FastAPI(title="Contacts API",
               version="1.0",
@@ -33,7 +34,7 @@ app.mount("/static", StaticFiles(directory="src/static"), name="static")
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(photos.router, prefix="/api/photos")
-app.include_router(coment.router, prefix="/api/commentaries")
+app.include_router(comment.router, prefix="/api/commentaries")
 
 
 

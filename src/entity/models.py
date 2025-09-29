@@ -8,12 +8,6 @@ from typing import Optional
 class Base(DeclarativeBase):
     pass
 
-photo_tags = Table(
-    "photo_tags",
-    Base.metadata,
-    Column("photo_id", Integer, ForeignKey("posts.id"), primary_key=True),
-    Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True),
-)
 
 post_tag_table = Table(
     "post_tags",
@@ -21,25 +15,6 @@ post_tag_table = Table(
     Column("post_id", ForeignKey("posts.id"), primary_key=True),
     Column("tag_id", ForeignKey("tags.id"), primary_key=True),
 )
-
-
-class User(Base):
-    __tablename__ = "users"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(50), unique=True)
-    email: Mapped[str] = mapped_column(String(150), unique=True)
-    password: Mapped[str] = mapped_column(String(255))
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    refresh_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
-    created_at: Mapped[date] = mapped_column(DateTime, default=func.now())
-    updated_at: Mapped[date] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
-    confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
-
-    posts: Mapped[list["Post"]] = relationship("Post", back_populates="user", cascade="all, delete-orphan")
-    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
-
 
 class Post(Base):
     __tablename__ = "posts"
@@ -60,23 +35,34 @@ class Post(Base):
         "Comment", back_populates="post", cascade="all, delete-orphan"
     )
     tags: Mapped[list["Tag"]] = relationship(
-        "Tag", secondary=photo_tags, back_populates="photos", lazy="selectin"
+        "Tag", secondary=post_tag_table, back_populates="posts", lazy="selectin"
     )
 
 
-class Tag(Base):
-    __tablename__ = "tags"
+class User(Base):
+    __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), unique=True)
+    username: Mapped[str] = mapped_column(String(50), unique=True)
+    email: Mapped[str] = mapped_column(String(150), unique=True)
+    password: Mapped[str] = mapped_column(String(255))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    refresh_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
+    created_at: Mapped[date] = mapped_column(DateTime, default=func.now())
+    updated_at: Mapped[date] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+    confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
 
-    photos: Mapped[list["Post"]] = relationship("Post", secondary=photo_tags, back_populates="tags", lazy="selectin")
+    posts: Mapped[list["Post"]] = relationship("Post", back_populates="user", cascade="all, delete-orphan")
+    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
+
+
 
 class Comment(Base):
     __tablename__ = "comments"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    content: Mapped[str] = mapped_column(String(255), nullable=False)
+    comment_content: Mapped[str] = mapped_column(String(255), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     post_id: Mapped[int] = mapped_column(ForeignKey("posts.id"))
     created_at: Mapped[DateTime] = mapped_column(DateTime, default=func.now())
