@@ -10,7 +10,7 @@ from src.entity.models import User
 from src.schemas.photo import PhotoSchema, PhotoUpdateSchema, PhotoResponse
 from src.services.auth import auth_service
 
-router = APIRouter(tags=["photos"])
+router = APIRouter(prefix="/photos", tags=["photos"])
 
 @router.get("/", response_model=list[PhotoResponse], status_code=status.HTTP_200_OK)
 async def get_photos(db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user)):

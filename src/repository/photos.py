@@ -10,6 +10,7 @@ from src.schemas.photo import PhotoSchema, PhotoUpdateSchema, PhotoResponse
 from src.services.cloudinary_service import CloudinaryService
 import qrcode
 from sqlalchemy import func
+import os
 from pathlib import Path
 
 cloudinary_service = CloudinaryService()
