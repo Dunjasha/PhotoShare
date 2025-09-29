@@ -14,7 +14,7 @@ class CloudinaryService:
         )
         self.max_file_size = 5 * 1024 * 1024  # 5 МБ
 
-    async def upload_image(self, file: UploadFile, folder: str = "photoshare") -> str:
+    async def upload_image(self, file: UploadFile, folder: str = "photoshare") -> tuple[str, str]:
         contents = await file.read()
         if len(contents) > self.max_file_size:
             raise HTTPException(
@@ -28,7 +28,9 @@ class CloudinaryService:
             folder=folder,
             resource_type="image"
         )
-        return result.get("secure_url")
+        url = result["secure_url"]
+        public_id = result["public_id"]
+        return url, public_id
 
     async def delete_image(self, public_id: str):
         cloudinary.uploader.destroy(public_id, resource_type="image")

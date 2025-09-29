@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.db import get_db
@@ -23,8 +25,9 @@ async def get_photo(photo_id: int, db: AsyncSession = Depends(get_db), user: Use
     return photo
 
 @router.post("/", response_model=PhotoResponse, status_code=status.HTTP_201_CREATED)
-async def create_photo(body: PhotoSchema, db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
-    photo = await repository_photos.create_photo(body, db, user)
+async def create_photo(file: UploadFile = File(...),description: Optional[str] = Form(None),tags: Optional[str] = Form(None), db: AsyncSession = Depends(get_db),user: User = Depends(auth_service.get_current_user)):
+    tags_list = [tag.strip() for tag in tags.split(",")] if tags else []
+    photo = await repository_photos.create_photo(file, description, tags_list, db, user)
     return photo
 
 @router.put("/{photo_id}", response_model=PhotoResponse, status_code=status.HTTP_200_OK)
@@ -63,4 +66,8 @@ async def generate_qr_code(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(auth_service.get_current_user),
 ):
+<<<<<<< HEAD
     return await repository_photos.generate_qr_code(photo_id, db, user)
+=======
+    return await repository_photos.generate_qr_code(photo_id, db, user)
+>>>>>>> 96acfed9550dee0449601a7836ec37e218b3e330
