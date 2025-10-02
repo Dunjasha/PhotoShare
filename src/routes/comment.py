@@ -33,3 +33,10 @@ async def update_comment(comment_id: int, body: CommentaryUpdateSchema, db: Asyn
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
     return comment
+
+@router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_comment(comment_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.role_required([Role.ADMIN, Role.EDITOR]))):
+    comment = await repository_comment.delete_comment(comment_id, db, user)
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    return comment

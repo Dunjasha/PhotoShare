@@ -8,10 +8,10 @@ class UserSchema(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: int = 1
+    id: int
     username: str
     email: EmailStr
-    role: str
+    role: Role
 
     model_config = ConfigDict(from_attributes=True)  # noqa
 
