@@ -17,11 +17,13 @@ cloudinary_service = CloudinaryService()
 QR_CODES_DIR = Path("qrcodes")
 QR_CODES_DIR.mkdir(exist_ok=True)
 
+
 async def get_photos(db: AsyncSession, user: User):
     stmt = select(Post).options(selectinload(Post.tags))
     photos = await db.execute(stmt)
     result = photos.scalars().all()
     return [PhotoResponse.model_validate(photo) for photo in result]
+
 
 async def get_photo(photo_id: int, db: AsyncSession, user: User):
     stmt = select(Post).filter_by(id=photo_id).options(selectinload(Post.tags))
@@ -30,7 +32,8 @@ async def get_photo(photo_id: int, db: AsyncSession, user: User):
     return PhotoResponse.model_validate(photo) if photo else None
 
 
-async def create_photo(file: UploadFile, description: Optional[str], tags: Optional[list[str]], db: AsyncSession, user: User):
+async def create_photo(file: UploadFile, description: Optional[str], tags: Optional[list[str]], db: AsyncSession,
+                       user: User):
     url, public_id = await cloudinary_service.upload_image(file)
     tag_objects = []
     if tags:
@@ -127,8 +130,6 @@ async def update_photo_description(photo_id: int, body: PhotoUpdateSchema, db: A
     return PhotoResponse.model_validate(post)
 
 
-
-
 async def delete_photo(photo_id: int, db: AsyncSession, user: User):
     stmt = select(Post).filter_by(id=photo_id).options(selectinload(Post.tags))
     result = await db.execute(stmt)
@@ -144,7 +145,6 @@ async def delete_photo(photo_id: int, db: AsyncSession, user: User):
     await db.commit()
 
     return {"detail": "Photo deleted successfully"}
-
 
 
 async def transform_photo(photo_id: int, transformation: str, db: AsyncSession, user):
@@ -163,6 +163,7 @@ async def transform_photo(photo_id: int, transformation: str, db: AsyncSession, 
         return PhotoResponse.model_validate(photo)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 async def generate_qr_code(photo_id: int, db: AsyncSession, user: User):
     stmt = select(Post).filter_by(id=photo_id, user_id=user.id).options(selectinload(Post.tags))

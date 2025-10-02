@@ -7,7 +7,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from alembic import context
-from src.entity.models import Base, Post, Tag, post_tag_table
+from src.entity.models import Base, Post, Tag, photo_tags
 
 
 from dotenv import load_dotenv
@@ -24,8 +24,6 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 
 DB_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-print("DB_URL:", DB_URL)
-
 
 config.set_main_option("sqlalchemy.url", DB_URL)
 

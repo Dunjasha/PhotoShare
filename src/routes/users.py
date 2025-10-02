@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.auth import auth_service
 from src.schemas.user import UserResponse
 from src.entity.models import User
+
+from src.repository import users as repositories_users
+from src.database.db import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -19,3 +23,22 @@ async def get_current_user(user: User = Depends(auth_service.get_current_user)):
         UserResponse: Detailed information about the authenticated user.
     """
     return user
+
+
+@router.get("/public/{username}", response_model=UserResponse)
+async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)):
+    """
+    Get public information about a user by username.
+
+    Args:
+        username (str): User's username.
+        db (AsyncSession): DB session.
+
+    Returns:
+        UserResponse: Public user data.
+    """
+    user = await repositories_users.get_user_by_username(username, db)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
