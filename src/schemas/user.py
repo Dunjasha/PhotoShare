@@ -12,6 +12,7 @@ class UserResponse(BaseModel):
     username: str
     email: EmailStr
     role: str
+    is_active: bool
 
     model_config = ConfigDict(from_attributes=True)  # noqa
 
