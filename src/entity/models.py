@@ -1,10 +1,15 @@
+import enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date
-from sqlalchemy import String, DateTime, ForeignKey, func, Boolean, Table, Integer, Column
+from sqlalchemy import String, DateTime, ForeignKey, func, Boolean, Table, Integer, Column, Enum
 from sqlalchemy.orm import DeclarativeBase
 from typing import Optional
+from sqlalchemy import Enum as SAEnum
 
-
+class Role(enum.Enum):
+    ADMIN = "ADMIN"
+    MODERATOR = "MODERATOR"
+    USER = "USER"
 class Base(DeclarativeBase):
     pass
 
@@ -48,14 +53,14 @@ class User(Base):
     password: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     refresh_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), nullable=False)
+    role: Mapped[Role] = mapped_column('role', SAEnum(Role), default=Role.USER, nullable=True)
     created_at: Mapped[date] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[date] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
     confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
 
     posts: Mapped[list["Post"]] = relationship("Post", back_populates="user", cascade="all, delete-orphan")
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
-    role: Mapped["RoleModel"] = relationship("RoleModel", back_populates="users")
+
 
 
 class Comment(Base):
@@ -79,11 +84,3 @@ class Tag(Base):
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
     posts: Mapped[list["Post"]] = relationship("Post", secondary=post_tag_table, back_populates="tags")
-
-
-class Role(Base):
-    __tablename__ = "roles"
-    id = Column(Integer, primary_key=True)
-    name = Column(SqlEnum(Role), unique=True, nullable=False)
-
-    users: Mapped[list["User"]] = relationship("User", back_populates="role")

@@ -57,19 +57,3 @@ async def update_comment(comment_id: int, body: CommentaryUpdateSchema, db: Asyn
     await db.commit()
     await db.refresh(comment)
     return CommentaryResponseSchema.model_validate(comment)
-
-async def delete_comment(comment_id: int, db: AsyncSession, user: User):
-    stmt = select(Comment).filter_by(id=comment_id)
-    result = await db.execute(stmt)
-    comment = result.scalar_one_or_none()
-
-    if not comment:
-        raise HTTPException(status_code=404, detail="Comment not found")
-
-    if comment.user_id != user.id and user.role != "admin":
-        raise HTTPException(status_code=403, detail="Not authorized to delete this comment")
-
-    deleted_comment = CommentaryResponseSchema.model_validate(comment)
-    await db.delete(comment)
-    await db.commit()
-    return {"detail": "Comment deleted successfully", "deleted_comment": deleted_comment}

@@ -7,7 +7,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from alembic import context
-from src.entity.models import Base, Post, Tag, post_tag_table
+from src.entity.models import Base, Post, Tag, post_tag_table, Role
 
 
 from dotenv import load_dotenv
