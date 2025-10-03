@@ -4,7 +4,7 @@ from src.services.auth import auth_service
 
 
 def is_owner_or_admin(user_id: int, current_user: User = Depends(auth_service.get_current_user)):
-    if current_user.role == "admin":
+    if current_user.role == "ADMIN":
         return current_user
     if current_user.id == user_id:
         return current_user
