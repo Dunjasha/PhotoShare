@@ -148,7 +148,6 @@ async def delete_photo(photo_id: int, db: AsyncSession, user: User):
     return {"detail": "Photo deleted successfully"}
 
 
-
 async def transform_photo(photo_id: int, transformation: str, db: AsyncSession, user):
     stmt = select(Post).filter_by(id=photo_id, user_id=user.id).options(selectinload(Post.tags))
     result = await db.execute(stmt)
