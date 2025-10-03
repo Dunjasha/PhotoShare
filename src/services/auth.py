@@ -148,6 +148,13 @@ class Auth:
         user = await repository_users.get_user_by_email(email, db)
         if user is None:
             raise credentials_exception
+
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account is deactivated"
+            )
+
         return user
 
     def create_email_token(self, data: dict):
