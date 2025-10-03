@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import selectinload
 
-from src.entity.models import User, Post, Tag
+from src.entity.models import User, Post, Tag, Role
 from src.schemas.photo import PhotoSchema, PhotoUpdateSchema, PhotoResponse
 from src.services.cloudinary_service import CloudinaryService
 import qrcode
@@ -141,6 +141,7 @@ async def delete_photo(photo_id: int, db: AsyncSession, user: User):
     if post.user_id != user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions to delete this photo")
 
+    await cloudinary_service.delete_image(post.public_id)
     await db.delete(post)
     await db.commit()
 
