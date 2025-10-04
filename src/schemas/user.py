@@ -3,11 +3,13 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from src.entity.models import Role
 
+
 class UserSchema(BaseModel):
     username: str = Field(min_length=4, max_length=16)
     email: EmailStr
     password: str = Field(min_length=4, max_length=16)
-    role: Role = Role.USER #default role is USER
+    role: Role = Role.USER
+
 
 class UserResponse(BaseModel):
     id: int = 1
@@ -15,6 +17,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: Role
     description: Optional[str] = None
+    is_active: bool
 
     class Config:
         from_attributes = True

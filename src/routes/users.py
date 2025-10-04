@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.auth import auth_service
 from src.schemas.user import UserResponse, UserPublicResponse, UserUpdateSchema
-from src.entity.models import User
+from src.services.roles import RoleAccess
+from src.entity.models import User, Role
 
 from src.repository import users as repositories_users
 from src.database.db import get_db
@@ -76,3 +77,26 @@ async def update_me(
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found")
     return updated_user
+
+@router.patch("/{user_id}/deactivate", response_model=UserResponse,
+              dependencies=[Depends(RoleAccess([Role.ADMIN]))])
+async def deactivate_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Deactivate a user (admin only).
+    """
+    user = await repositories_users.set_user_active_status(user_id, False, db)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+@router.patch("/{user_id}/activate", response_model=UserResponse,
+              dependencies=[Depends(RoleAccess([Role.ADMIN]))])
+async def activate_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Reactivate a user (admin only).
+    """
+    user = await repositories_users.set_user_active_status(user_id, True, db)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
