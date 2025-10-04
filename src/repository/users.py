@@ -1,11 +1,15 @@
+from fastapi import HTTPException
+
+
+
 from fastapi import Depends
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.db import get_db
 from src.entity.models import User
-from src.schemas.user import UserSchema
-
+from src.schemas.user import UserSchema, UserUpdateSchema
+from src.services.auth import auth_service
 
 async def create_user(body: UserSchema, db: AsyncSession = Depends(get_db)):
     """
@@ -37,7 +41,7 @@ async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)
     Returns:
         UserResponse: Public user data.
     """
-    stmt = select(User).where(User.email == username)
+    stmt = select(User).where(User.username == username)
     user = await db.execute(stmt)
     user = user.scalar_one_or_none()
     return user
@@ -97,6 +101,38 @@ async def set_user_active_status(user_id: int, is_active: bool, db: AsyncSession
         return None
 
     user.is_active = is_active
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+async def update_user(user_id: int, body: UserUpdateSchema, db: AsyncSession):
+    """
+    Update user information.
+
+    Args:
+        user_id (int): The ID of the user to update.
+        body (UserSchema): The new user data.
+        db (AsyncSession): The database session.
+
+    Returns:
+        User: The updated user object.
+    """
+    user = await db.get(User, user_id)
+    if not user:
+        return None
+
+    update_data = body.model_dump(exclude_unset=True)
+
+    # Перевірка унікальності username
+    if "username" in update_data and update_data["username"]:
+        existing_user = await get_user_by_username(update_data["username"], db)
+        if existing_user and existing_user.id != user_id:
+            raise HTTPException(status_code=400, detail="Username already in use")
+
+    for key, value in update_data.items():
+        setattr(user, key, value)
+
+    db.add(user)
     await db.commit()
     await db.refresh(user)
     return user
