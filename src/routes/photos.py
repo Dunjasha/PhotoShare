@@ -10,7 +10,7 @@ from src.entity.models import User
 from src.schemas.photo import PhotoSchema, PhotoUpdateSchema, PhotoResponse
 from src.services.auth import auth_service
 
-router = APIRouter(prefix="/photos", tags=["photos"])
+router = APIRouter(tags=["photos"])
 
 @router.get("/", response_model=list[PhotoResponse], status_code=status.HTTP_200_OK)
 async def get_photos(db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
@@ -66,8 +66,6 @@ async def generate_qr_code(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(auth_service.get_current_user),
 ):
-<<<<<<< HEAD
+
     return await repository_photos.generate_qr_code(photo_id, db, user)
-=======
-    return await repository_photos.generate_qr_code(photo_id, db, user)
->>>>>>> 96acfed9550dee0449601a7836ec37e218b3e330
+

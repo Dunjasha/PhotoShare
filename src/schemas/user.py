@@ -1,10 +1,12 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from src.entity.models import Role
 
 
 class UserSchema(BaseModel):
     username: str = Field(min_length=4, max_length=16)
     email: EmailStr
     password: str = Field(min_length=4, max_length=16)
+    role: Role = Role.USER
 
 
 class UserResponse(BaseModel):
@@ -12,8 +14,10 @@ class UserResponse(BaseModel):
     username: str
     email: EmailStr
     role: str
+    is_active: bool
 
-    model_config = ConfigDict(from_attributes=True)  # noqa
+    class Config:
+        from_attributes = True
 
 
 class TokenSchema(BaseModel):

@@ -26,6 +26,23 @@ async def create_user(body: UserSchema, db: AsyncSession = Depends(get_db)):
     return new_user
 
 
+async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)):
+    """
+    Get public information about a user by username.
+
+    Args:
+        username (str): User's username.
+        db (AsyncSession): DB session.
+
+    Returns:
+        UserResponse: Public user data.
+    """
+    stmt = select(User).where(User.email == username)
+    user = await db.execute(stmt)
+    user = user.scalar_one_or_none()
+    return user
+
+
 async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     """
     Retrieve a user from the database by email.
@@ -67,3 +84,19 @@ async def update_token(user: User, token: str | None, db: AsyncSession):
     """
     user.refresh_token = token
     await db.commit()
+
+
+async def set_user_active_status(user_id: int, is_active: bool, db: AsyncSession):
+    """
+    Activate or deactivate a user by admin.
+    """
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+    if not user:
+        return None
+
+    user.is_active = is_active
+    await db.commit()
+    await db.refresh(user)
+    return user
