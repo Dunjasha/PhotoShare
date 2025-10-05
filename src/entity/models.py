@@ -57,6 +57,7 @@ class User(Base):
     created_at: Mapped[date] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[date] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
     confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     posts: Mapped[list["Post"]] = relationship("Post", back_populates="user", cascade="all, delete-orphan")
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
