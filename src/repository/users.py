@@ -84,3 +84,19 @@ async def update_token(user: User, token: str | None, db: AsyncSession):
     """
     user.refresh_token = token
     await db.commit()
+
+
+async def set_user_active_status(user_id: int, is_active: bool, db: AsyncSession):
+    """
+    Activate or deactivate a user by admin.
+    """
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+    if not user:
+        return None
+
+    user.is_active = is_active
+    await db.commit()
+    await db.refresh(user)
+    return user
