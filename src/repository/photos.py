@@ -187,3 +187,73 @@ async def generate_qr_code(photo_id: int, db: AsyncSession, user: User):
     await db.refresh(photo)
 
     return PhotoResponse.model_validate(photo)
+
+
+# --------------- Admin methods -----------------
+async def get_all_photos_admin(db: AsyncSession):
+    """
+    Retrieve all photos from all users (admin only).
+
+    Allows administrators to fetch every photo stored in the database,
+    regardless of the uploader.
+
+    Args:
+        db (AsyncSession): The database session (injected).
+
+    Returns:
+        list[Post]: A list of all photo records in the system.
+    """
+    result = await db.execute(select(Post))
+    return result.scalars().all()
+
+
+async def admin_delete_photo(photo_id: int, db: AsyncSession):
+    """
+    Permanently delete a photo by its ID (admin only).
+
+    This method removes the specified photo record from the database,
+    without checking for ownership (admins have global delete rights).
+
+    Args:
+        photo_id (int): The unique identifier of the photo to delete.
+        db (AsyncSession): The database session (injected).
+
+    Returns:
+        bool | None:
+            - True if the photo was successfully deleted.
+            - None if no photo with the given ID was found.
+    """
+    result = await db.execute(select(Post).where(Post.id == photo_id))
+    photo = result.scalar_one_or_none()
+    if not photo:
+        return None
+    await db.delete(photo)
+    await db.commit()
+    return True
+
+
+async def admin_update_photo_description(photo_id: int, body: PhotoUpdateSchema, db: AsyncSession):
+    """
+    Update a photo's description by its ID (admin only).
+
+    Enables administrators to modify the textual description of any photo,
+    bypassing ownership restrictions.
+
+    Args:
+        photo_id (int): The unique identifier of the photo to update.
+        body (PhotoUpdateSchema): The new description data for the photo.
+        db (AsyncSession): The database session (injected).
+
+    Returns:
+        Post | None:
+            - The updated photo object, if found.
+            - None if no photo with the given ID exists.
+    """
+    result = await db.execute(select(Post).where(Post.id == photo_id))
+    photo = result.scalar_one_or_none()
+    if not photo:
+        return None
+    photo.description = body.description
+    await db.commit()
+    await db.refresh(photo)
+    return photo
