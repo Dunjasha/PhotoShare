@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.auth import auth_service
-from src.schemas.user import UserResponse, UserPublicResponse, UserUpdateSchema
+
 from src.services.roles import RoleAccess
+from src.schemas.user import UserResponse, UserPublicResponse, UserUpdateSchema
+
 from src.entity.models import User, Role
 
 from src.repository import users as repositories_users
@@ -43,6 +45,7 @@ async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
 @router.get("/{user_id}", response_model=UserPublicResponse)
 async def get_public_profile(username: str, db: AsyncSession = Depends(get_db)):
     user = await repositories_users.get_user_by_username(username, db)
@@ -77,6 +80,7 @@ async def update_me(
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found")
     return updated_user
+
 
 @router.patch("/{user_id}/deactivate", response_model=UserResponse,
               dependencies=[Depends(RoleAccess([Role.ADMIN]))])

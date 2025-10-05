@@ -15,7 +15,7 @@ class UserResponse(BaseModel):
     id: int = 1
     username: str
     email: EmailStr
-    role: Role
+    role: str
     description: Optional[str] = None
     is_active: bool
 
