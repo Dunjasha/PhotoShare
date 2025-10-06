@@ -19,6 +19,19 @@ QR_CODES_DIR.mkdir(exist_ok=True)
 
 
 async def get_photos(db: AsyncSession, user: User):
+    """
+    Retrieve all photo posts from the database for a given user, including their associated tags.
+
+    Args:
+        db (AsyncSession): The asynchronous database session to use for querying.
+        user (User): The user whose photos are to be retrieved.
+
+    Returns:
+        List[PhotoResponse]: A list of validated photo response objects.
+
+    Raises:
+        SQLAlchemyError: If a database error occurs during the query.
+    """
     stmt = select(Post).options(selectinload(Post.tags))
     photos = await db.execute(stmt)
     result = photos.scalars().all()
@@ -26,14 +39,44 @@ async def get_photos(db: AsyncSession, user: User):
 
 
 async def get_photo(photo_id: int, db: AsyncSession, user: User):
+    """
+    Retrieve a photo by its ID from the database, including its associated tags.
+
+    Args:
+        photo_id (int): The unique identifier of the photo to retrieve.
+        db (AsyncSession): The asynchronous database session to use for the query.
+        user (User): The user requesting the photo.
+
+    Returns:
+        Optional[PhotoResponse]: The validated photo response object if found, otherwise None.
+    """
     stmt = select(Post).filter_by(id=photo_id).options(selectinload(Post.tags))
     todo = await db.execute(stmt)
     photo = todo.scalar_one_or_none()
     return PhotoResponse.model_validate(photo) if photo else None
 
 
-async def create_photo(file: UploadFile, description: Optional[str], tags: Optional[list[str]], db: AsyncSession,
-                       user: User):
+async def create_photo(file: UploadFile, description: Optional[str], tags: Optional[list[str]], db: AsyncSession,user: User):
+    async def create_photo(
+        file: UploadFile,
+        description: Optional[str],
+        tags: Optional[list[str]],
+        db: AsyncSession,
+        user: User
+    ):
+        """
+        Uploads a photo to Cloudinary, creates a new photo record in the database, and associates tags with the photo.
+        Args:
+            file (UploadFile): The image file to upload.
+            description (Optional[str]): An optional description for the photo.
+            tags (Optional[list[str]]): An optional list of tag names to associate with the photo (max 5 tags).
+            db (AsyncSession): The database session for performing operations.
+            user (User): The user uploading the photo.
+        Raises:
+            HTTPException: If more than 5 tags are provided.
+        Returns:
+            PhotoResponse: The response model containing the created photo's details.
+        """
     url, public_id = await cloudinary_service.upload_image(file)
     tag_objects = []
     if tags:
@@ -72,6 +115,20 @@ async def create_photo(file: UploadFile, description: Optional[str], tags: Optio
 
 
 async def update_photo_description(photo_id: int, body: PhotoUpdateSchema, db: AsyncSession, user: User):
+    """
+    Updates the description, transformed URL, and tags of a photo post.
+    Args:
+        photo_id (int): The ID of the photo to update.
+        body (PhotoUpdateSchema): The schema containing updated fields (description, transformed_url, tags).
+        db (AsyncSession): The asynchronous database session.
+        user (User): The user attempting to update the photo.
+    Raises:
+        HTTPException: If the photo is not found (404).
+        HTTPException: If the user does not have permission to update the photo (403).
+        HTTPException: If more than 5 tags are provided (400).
+    Returns:
+        PhotoResponse: The updated photo post response model.
+    """
     stmt = select(Post).filter_by(id=photo_id).options(selectinload(Post.tags))
     result = await db.execute(stmt)
     post = result.scalar_one_or_none()
@@ -131,6 +188,21 @@ async def update_photo_description(photo_id: int, body: PhotoUpdateSchema, db: A
 
 
 async def delete_photo(photo_id: int, db: AsyncSession, user: User):
+    """
+    Deletes a photo post from the database and removes the associated image from Cloudinary.
+
+    Args:
+        photo_id (int): The ID of the photo to delete.
+        db (AsyncSession): The asynchronous database session.
+        user (User): The user attempting to delete the photo.
+
+    Raises:
+        HTTPException: If the photo is not found (404).
+        HTTPException: If the user does not have permission to delete the photo (403).
+
+    Returns:
+        dict: A message confirming that the photo was successfully deleted.
+    """
     stmt = select(Post).filter_by(id=photo_id).options(selectinload(Post.tags))
     result = await db.execute(stmt)
     post = result.scalar_one_or_none()
@@ -149,6 +221,22 @@ async def delete_photo(photo_id: int, db: AsyncSession, user: User):
 
 
 async def transform_photo(photo_id: int, transformation: str, db: AsyncSession, user):
+    """
+    Applies a visual transformation to a photo and updates its transformed URL in the database.
+
+    Args:
+        photo_id (int): The ID of the photo to transform.
+        transformation (str): The transformation type or parameters to apply to the image.
+        db (AsyncSession): The asynchronous database session.
+        user (User): The user requesting the transformation.
+
+    Raises:
+        HTTPException: If the photo is not found (404).
+        HTTPException: If the transformation type is invalid or unsupported (400).
+
+    Returns:
+        PhotoResponse: The updated photo post with the new transformed image URL.
+    """
     stmt = select(Post).filter_by(id=photo_id, user_id=user.id).options(selectinload(Post.tags))
     result = await db.execute(stmt)
     photo = result.scalar_one_or_none()
@@ -167,6 +255,21 @@ async def transform_photo(photo_id: int, transformation: str, db: AsyncSession, 
 
 
 async def generate_qr_code(photo_id: int, db: AsyncSession, user: User):
+    """
+    Generates a QR code for the transformed image of a photo and saves it locally.
+
+    Args:
+        photo_id (int): The ID of the photo for which to generate a QR code.
+        db (AsyncSession): The asynchronous database session.
+        user (User): The user requesting the QR code generation.
+
+    Raises:
+        HTTPException: If the photo is not found (404).
+        HTTPException: If the photo does not have a transformed image (400).
+
+    Returns:
+        PhotoResponse: The updated photo post containing the path to the generated QR code image.
+    """
     stmt = select(Post).filter_by(id=photo_id, user_id=user.id).options(selectinload(Post.tags))
     result = await db.execute(stmt)
     photo = result.scalar_one_or_none()
