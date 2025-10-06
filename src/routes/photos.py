@@ -16,6 +16,19 @@ router = APIRouter(tags=["photos"])
 
 @router.get("/", response_model=list[PhotoResponse], status_code=status.HTTP_200_OK)
 async def get_photos(db: AsyncSession = Depends(get_db), user: User = Depends(auth_service.get_current_user)):
+    """
+    Retrieve all photos for the currently authenticated user.
+
+    Args:
+        db (AsyncSession): SQLAlchemy asynchronous database session.
+        user (User): The currently authenticated user.
+
+    Returns:
+        list[PhotoResponse]: A list of photo posts belonging to the user.
+
+    Raises:
+        HTTPException: If the user has no access to any photos (403), handled internally by repository if needed.
+    """
     photos = await repository_photos.get_photos(db, user)
     return photos
 
@@ -23,6 +36,21 @@ async def get_photos(db: AsyncSession = Depends(get_db), user: User = Depends(au
 @router.get("/{photo_id}", response_model=PhotoResponse, status_code=status.HTTP_200_OK)
 async def get_photo(photo_id: int, db: AsyncSession = Depends(get_db),
                     user: User = Depends(auth_service.get_current_user)):
+    """
+    Retrieve a specific photo by its ID for the currently authenticated user.
+
+    Args:
+        photo_id (int): The ID of the photo to retrieve.
+        db (AsyncSession): SQLAlchemy asynchronous database session.
+        user (User): The currently authenticated user.
+
+    Returns:
+        PhotoResponse: The requested photo as a validated response model.
+
+    Raises:
+        HTTPException: If the photo is not found (404).
+        HTTPException: If the user is not authorized to access this photo (403), handled internally by repository if needed.
+    """
     photo = await repository_photos.get_photo(photo_id, db, user)
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
@@ -33,6 +61,22 @@ async def get_photo(photo_id: int, db: AsyncSession = Depends(get_db),
 async def create_photo(file: UploadFile = File(...), description: Optional[str] = Form(None),
                        tags: Optional[str] = Form(None), db: AsyncSession = Depends(get_db),
                        user: User = Depends(auth_service.get_current_user)):
+    """
+    Upload a new photo with optional description and tags.
+
+    Args:
+        file (UploadFile): The photo file to upload.
+        description (Optional[str]): Optional description for the photo.
+        tags (Optional[str]): Optional comma-separated tags for the photo.
+        db (AsyncSession): SQLAlchemy asynchronous database session.
+        user (User): The currently authenticated user uploading the photo.
+
+    Returns:
+        PhotoResponse: The newly created photo as a validated response model.
+
+    Raises:
+        HTTPException: If the file upload fails or database operation fails (handled internally by repository).
+    """
     tags_list = [tag.strip() for tag in tags.split(",")] if tags else []
     photo = await repository_photos.create_photo(file, description, tags_list, db, user)
     return photo
@@ -41,6 +85,23 @@ async def create_photo(file: UploadFile = File(...), description: Optional[str] 
 @router.put("/{photo_id}", response_model=PhotoResponse, status_code=status.HTTP_200_OK)
 async def update_photo_description(photo_id: int, body: PhotoUpdateSchema, db: AsyncSession = Depends(get_db),
                                    user: User = Depends(auth_service.get_current_user)):
+    """
+    Update the description, transformed URL, or tags of an existing photo.
+
+    Args:
+        photo_id (int): The ID of the photo to update.
+        body (PhotoUpdateSchema): The schema containing the updated description, transformed URL, or tags.
+        db (AsyncSession): SQLAlchemy asynchronous database session.
+        user (User): The currently authenticated user attempting to update the photo.
+
+    Returns:
+        PhotoResponse: The updated photo as a validated response model.
+
+    Raises:
+        HTTPException: If the photo is not found (404).
+        HTTPException: If the user is not authorized to update this photo (403).
+        HTTPException: If more than 5 tags are provided (400), handled internally by repository.
+    """
     photo = await repository_photos.update_photo_description(photo_id, body, db, user)
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
@@ -50,6 +111,21 @@ async def update_photo_description(photo_id: int, body: PhotoUpdateSchema, db: A
 @router.delete("/{photo_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_photo(photo_id: int, db: AsyncSession = Depends(get_db),
                        user: User = Depends(auth_service.get_current_user)):
+    """
+    Delete a photo by its ID.
+
+    Args:
+        photo_id (int): The ID of the photo to delete.
+        db (AsyncSession): SQLAlchemy asynchronous database session.
+        user (User): The currently authenticated user attempting to delete the photo.
+
+    Returns:
+        dict: A confirmation message that the photo was successfully deleted.
+
+    Raises:
+        HTTPException: If the photo is not found (404).
+        HTTPException: If the user is not authorized to delete this photo (403).
+    """
     photo = await repository_photos.delete_photo(photo_id, db, user)
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
@@ -63,6 +139,23 @@ async def transform_photo(
         db: AsyncSession = Depends(get_db),
         user: User = Depends(auth_service.get_current_user),
 ):
+    """
+    Apply a visual transformation to a photo and update its transformed URL.
+
+    Args:
+        photo_id (int): The ID of the photo to transform.
+        transformation (str): The transformation type or parameters to apply.
+        db (AsyncSession): SQLAlchemy asynchronous database session.
+        user (User): The currently authenticated user requesting the transformation.
+
+    Returns:
+        PhotoResponse: The updated photo with the transformed image URL.
+
+    Raises:
+        HTTPException: If the photo is not found (404).
+        HTTPException: If the transformation type is invalid or unsupported (400), handled internally by repository.
+        HTTPException: If the user is not authorized to transform this photo (403), handled internally by repository.
+    """
     return await repository_photos.transform_photo(photo_id, transformation, db, user)
 
 
@@ -76,6 +169,22 @@ async def generate_qr_code(
         db: AsyncSession = Depends(get_db),
         user: User = Depends(auth_service.get_current_user),
 ):
+    """
+    Generate a QR code for the transformed image of a photo and update its QR code path.
+
+    Args:
+        photo_id (int): The ID of the photo for which to generate a QR code.
+        db (AsyncSession): SQLAlchemy asynchronous database session.
+        user (User): The currently authenticated user requesting the QR code.
+
+    Returns:
+        PhotoResponse: The updated photo containing the path to the generated QR code.
+
+    Raises:
+        HTTPException: If the photo is not found (404).
+        HTTPException: If the photo does not have a transformed image (400), handled internally by repository.
+        HTTPException: If the user is not authorized to generate a QR code for this photo (403), handled internally by repository.
+    """
     return await repository_photos.generate_qr_code(photo_id, db, user)
 
 
